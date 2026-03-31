@@ -7,78 +7,235 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-gray-100 p-8 font-sans text-gray-800">
+<body class="bg-gray-100 p-4 md:p-8 font-sans text-gray-800">
 
-    <div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-md flex flex-col md:flex-row gap-8">
-        <div class="flex-1">
-            <a href="index.html" class="text-green-600 hover:text-green-800 font-semibold text-sm mb-4 inline-block">&larr; Back to Home</a>
-            
-            <h2 class="text-2xl font-bold mb-4 text-green-600">Parameters</h2>
-            <div class="grid grid-cols-2 gap-4 mb-6">
-                <div>
-                    <label class="block text-sm font-medium">Knapsack Capacity (W)</label>
-                    <input type="number" id="capacity" value="100" class="mt-1 p-2 border rounded w-full">
+    <div class="max-w-7xl mx-auto space-y-6">
+        <!-- Main Solver Section -->
+        <div class="bg-white p-6 rounded-lg shadow-md flex flex-col lg:flex-row gap-8">
+            <div class="flex-1">
+                <a href="index.html" class="text-green-600 hover:text-green-800 font-semibold text-sm mb-4 inline-block">&larr; Back to Home</a>
+                
+                <h2 class="text-2xl font-bold mb-4 text-green-600">Parameters</h2>
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium">Knapsack Capacity (W)</label>
+                        <input type="number" id="capacity" value="100" class="mt-1 p-2 border rounded w-full">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium">FPTAS Epsilon (ε)</label>
+                        <input type="number" step="0.01" min="0.01" max="1" id="epsilon" value="0.5" class="mt-1 p-2 border rounded w-full">
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium">FPTAS Epsilon (ε)</label>
-                    <input type="number" step="0.1" id="epsilon" value="0.5" class="mt-1 p-2 border rounded w-full">
+
+                <h3 class="text-lg font-semibold mb-2 flex justify-between items-center">
+                    Items 
+                    <div class="space-x-2">
+                        <button onclick="addItem()" class="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600">+ Add</button>
+                        <button onclick="clearItems()" class="bg-gray-400 text-white px-3 py-1 rounded text-sm hover:bg-gray-500">Clear</button>
+                    </div>
+                </h3>
+                
+                <div class="flex gap-2 items-center px-2 mb-1 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    <span class="w-6">ID</span>
+                    <span class="w-full ml-1">Profit (Value)</span>
+                    <span class="w-full ml-1">Size (Weight)</span>
+                    <span class="w-6"></span>
                 </div>
+                
+                <div id="itemsList" class="space-y-2 mb-6 max-h-48 overflow-y-auto pr-2"></div>
+
+                <button onclick="solveKnapsack()" class="w-full bg-green-600 text-white font-bold py-3 rounded hover:bg-green-700 transition">
+                    Solve & Compare
+                </button>
             </div>
 
-            <h3 class="text-lg font-semibold mb-2 flex justify-between items-center">
-                Items 
-                <button onclick="addItem()" class="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600">+ Add</button>
-            </h3>
+            <div class="flex-1 flex flex-col">
+                <h2 class="text-2xl font-bold mb-4 mt-8 lg:mt-0 text-green-600">Results</h2>
+                
+                <div class="grid grid-cols-3 gap-4 mb-2 text-center">
+                    <div class="bg-gray-50 p-4 rounded-t border-t border-l border-r">
+                        <p class="text-xs text-gray-500 font-bold uppercase">Exact DP</p>
+                        <p id="resExact" class="text-2xl font-bold text-gray-800">-</p>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-t border-t border-l border-r border-green-200">
+                        <p class="text-xs text-green-600 font-bold uppercase">FPTAS</p>
+                        <p id="resFptas" class="text-2xl font-bold text-green-800">-</p>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-t border-t border-l border-r border-purple-200">
+                        <p class="text-xs text-purple-600 font-bold uppercase">LP Relaxation</p>
+                        <p id="resLp" class="text-2xl font-bold text-purple-800">-</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-3 gap-4 mb-4 text-center text-xs">
+                    <div class="bg-gray-100 p-2 rounded-b border-b border-l border-r">
+                        <p class="text-gray-600">Time: <span id="timeExact" class="font-bold">-</span> ms</p>
+                        <p class="text-gray-600">DP Size: <span id="dpExact" class="font-bold">-</span></p>
+                    </div>
+                    <div class="bg-green-100 p-2 rounded-b border-b border-l border-r border-green-200">
+                        <p class="text-green-700">Time: <span id="timeFptas" class="font-bold">-</span> ms</p>
+                        <p class="text-green-700">DP Size: <span id="dpFptas" class="font-bold">-</span></p>
+                    </div>
+                    <div class="bg-purple-100 p-2 rounded-b border-b border-l border-r border-purple-200">
+                        <p class="text-purple-700">Time: <span id="timeLp" class="font-bold">-</span> ms</p>
+                        <p class="text-purple-700">O(N log N) Sort</p>
+                    </div>
+                </div>
+
+                <!-- Approximation Analysis -->
+                <div class="bg-yellow-50 border border-yellow-200 rounded p-3 mb-4">
+                    <h4 class="text-sm font-bold text-yellow-800 mb-2">ε Trade-off Analysis</h4>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <span class="text-yellow-700">Actual Error:</span>
+                            <span id="errorMargin" class="font-bold text-yellow-900">-</span>%
+                        </div>
+                        <div>
+                            <span class="text-yellow-700">Theoretical Max:</span>
+                            <span id="theoreticalError" class="font-bold text-yellow-900">-</span>%
+                        </div>
+                        <div>
+                            <span class="text-yellow-700">Speedup:</span>
+                            <span id="speedup" class="font-bold text-yellow-900">-</span>x
+                        </div>
+                        <div>
+                            <span class="text-yellow-700">Scaling K:</span>
+                            <span id="scalingK" class="font-bold text-yellow-900">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 min-h-[250px]">
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Random Test Generator Section -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-bold mb-4 text-orange-600">🎲 Random Test Generator</h2>
+            <p class="text-sm text-gray-500 mb-4">Generate random test cases to stress test the FPTAS approximation.</p>
             
-            <div class="flex gap-2 items-center px-2 mb-1 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                <span class="w-6">ID</span>
-                <span class="w-full ml-1">Profit (Value)</span>
-                <span class="w-full ml-1">Size (Weight)</span>
-                <span class="w-6"></span>
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600">Items (max 100)</label>
+                    <input type="number" id="randNumItems" value="20" min="1" max="100" class="mt-1 p-2 border rounded w-full text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600">Min Value</label>
+                    <input type="number" id="randMinValue" value="10" min="1" max="10000" class="mt-1 p-2 border rounded w-full text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600">Max Value (≤10000)</label>
+                    <input type="number" id="randMaxValue" value="100" min="1" max="10000" class="mt-1 p-2 border rounded w-full text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600">Min Weight</label>
+                    <input type="number" id="randMinWeight" value="5" min="1" max="5000" class="mt-1 p-2 border rounded w-full text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600">Max Weight (≤5000)</label>
+                    <input type="number" id="randMaxWeight" value="50" min="1" max="5000" class="mt-1 p-2 border rounded w-full text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600">Capacity Ratio</label>
+                    <input type="number" id="randCapRatio" value="0.5" min="0.1" max="1" step="0.1" class="mt-1 p-2 border rounded w-full text-sm">
+                </div>
             </div>
             
-            <div id="itemsList" class="space-y-2 mb-6 max-h-64 overflow-y-auto pr-2"></div>
-
-            <button onclick="solveKnapsack()" class="w-full bg-green-600 text-white font-bold py-3 rounded hover:bg-green-700 transition">
-                Solve & Compare
+            <button onclick="generateRandom()" class="bg-orange-500 text-white font-bold px-6 py-2 rounded hover:bg-orange-600 transition">
+                Generate & Load
             </button>
         </div>
 
-        <div class="flex-1 flex flex-col">
-            <h2 class="text-2xl font-bold mb-4 mt-8 md:mt-0 text-green-600">Results</h2>
+        <!-- Batch Stress Test Section -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-bold mb-4 text-red-600">🔥 Batch Stress Test</h2>
+            <p class="text-sm text-gray-500 mb-4">Run multiple random tests to analyze FPTAS performance statistics.</p>
             
-            <div class="grid grid-cols-3 gap-4 mb-2 text-center">
-                <div class="bg-gray-50 p-4 rounded-t border-t border-l border-r">
-                    <p class="text-xs text-gray-500 font-bold uppercase">Exact DP</p>
-                    <p id="resExact" class="text-2xl font-bold text-gray-800">-</p>
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600">Tests (max 50)</label>
+                    <input type="number" id="stressNumTests" value="10" min="1" max="50" class="mt-1 p-2 border rounded w-full text-sm">
                 </div>
-                <div class="bg-green-50 p-4 rounded-t border-t border-l border-r border-green-200">
-                    <p class="text-xs text-green-600 font-bold uppercase">FPTAS</p>
-                    <p id="resFptas" class="text-2xl font-bold text-green-800">-</p>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600">Items (max 50)</label>
+                    <input type="number" id="stressNumItems" value="30" min="5" max="50" class="mt-1 p-2 border rounded w-full text-sm">
                 </div>
-                <div class="bg-purple-50 p-4 rounded-t border-t border-l border-r border-purple-200">
-                    <p class="text-xs text-purple-600 font-bold uppercase">LP Relaxation</p>
-                    <p id="resLp" class="text-2xl font-bold text-purple-800">-</p>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600">Min Value</label>
+                    <input type="number" id="stressMinValue" value="10" min="1" max="10000" class="mt-1 p-2 border rounded w-full text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600">Max Value</label>
+                    <input type="number" id="stressMaxValue" value="200" min="1" max="10000" class="mt-1 p-2 border rounded w-full text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600">Min Weight</label>
+                    <input type="number" id="stressMinWeight" value="5" min="1" max="5000" class="mt-1 p-2 border rounded w-full text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600">Max Weight</label>
+                    <input type="number" id="stressMaxWeight" value="100" min="1" max="5000" class="mt-1 p-2 border rounded w-full text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600">Epsilon (ε)</label>
+                    <input type="number" id="stressEpsilon" value="0.3" min="0.01" max="1" step="0.01" class="mt-1 p-2 border rounded w-full text-sm">
                 </div>
             </div>
             
-            <div class="grid grid-cols-3 gap-4 mb-6 text-center text-xs">
-                <div class="bg-gray-100 p-2 rounded-b border-b border-l border-r">
-                    <p class="text-gray-600">Time: <span id="timeExact" class="font-bold">-</span> ms</p>
-                    <p class="text-gray-600">Array: <span id="dpExact" class="font-bold">-</span></p>
-                </div>
-                <div class="bg-green-100 p-2 rounded-b border-b border-l border-r border-green-200">
-                    <p class="text-green-700">Time: <span id="timeFptas" class="font-bold">-</span> ms</p>
-                    <p class="text-green-700">Array: <span id="dpFptas" class="font-bold">-</span></p>
-                </div>
-                <div class="bg-purple-100 p-2 rounded-b border-b border-l border-r border-purple-200">
-                    <p class="text-purple-700">Time: <span id="timeLp" class="font-bold">-</span> ms</p>
-                    <p class="text-purple-700">O(N log N) Sort</p>
-                </div>
-            </div>
+            <button onclick="runStressTest()" id="stressBtn" class="bg-red-500 text-white font-bold px-6 py-2 rounded hover:bg-red-600 transition">
+                Run Stress Test
+            </button>
 
-            <div class="flex-1 min-h-[300px]">
-                <canvas id="comparisonChart"></canvas>
+            <!-- Stress Test Results -->
+            <div id="stressResults" class="hidden mt-6">
+                <h3 class="text-lg font-bold text-gray-700 mb-3">Stress Test Summary</h3>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+                    <div class="bg-blue-50 p-3 rounded text-center">
+                        <p class="text-xs text-blue-600 font-bold uppercase">Avg Error</p>
+                        <p id="stressAvgError" class="text-xl font-bold text-blue-800">-</p>
+                    </div>
+                    <div class="bg-red-50 p-3 rounded text-center">
+                        <p class="text-xs text-red-600 font-bold uppercase">Max Error</p>
+                        <p id="stressMaxError" class="text-xl font-bold text-red-800">-</p>
+                    </div>
+                    <div class="bg-green-50 p-3 rounded text-center">
+                        <p class="text-xs text-green-600 font-bold uppercase">Avg Speedup</p>
+                        <p id="stressAvgSpeedup" class="text-xl font-bold text-green-800">-</p>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded text-center">
+                        <p class="text-xs text-gray-600 font-bold uppercase">Total Exact Time</p>
+                        <p id="stressTotalExact" class="text-xl font-bold text-gray-800">-</p>
+                    </div>
+                    <div class="bg-purple-50 p-3 rounded text-center">
+                        <p class="text-xs text-purple-600 font-bold uppercase">Total FPTAS Time</p>
+                        <p id="stressTotalFptas" class="text-xl font-bold text-purple-800">-</p>
+                    </div>
+                </div>
+                
+                <div class="bg-yellow-50 border border-yellow-200 rounded p-3 mb-4">
+                    <p class="text-sm text-yellow-800">
+                        <strong>Theoretical Guarantee:</strong> FPTAS error should always be ≤ <span id="stressTheoreticalMax" class="font-bold">-</span>% (ε × 100)
+                    </p>
+                </div>
+
+                <div class="overflow-x-auto max-h-64">
+                    <table class="w-full text-xs border">
+                        <thead class="bg-gray-100 sticky top-0">
+                            <tr>
+                                <th class="p-2 border">#</th>
+                                <th class="p-2 border">Exact</th>
+                                <th class="p-2 border">FPTAS</th>
+                                <th class="p-2 border">Error %</th>
+                                <th class="p-2 border">Speedup</th>
+                                <th class="p-2 border">Exact DP Size</th>
+                                <th class="p-2 border">FPTAS DP Size</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stressTable"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
