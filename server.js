@@ -235,27 +235,22 @@ app.post('/api/solve-max', (req, res) => {
 
 // --- Random Test Case Generator API ---
 app.post('/api/generate-random', (req, res) => {
-    const { numItems, minValue, maxValue, minWeight, maxWeight, capacityRatio } = req.body;
+    const { numItems, minValue, maxValue, minWeight, maxWeight, capacity } = req.body;
     
     const items = [];
-    let totalWeight = 0;
     
     for (let i = 1; i <= numItems; i++) {
         const profit = Math.floor(Math.random() * (maxValue - minValue + 1)) + minValue;
         const size = Math.floor(Math.random() * (maxWeight - minWeight + 1)) + minWeight;
         items.push({ id: i, profit, size });
-        totalWeight += size;
     }
-    
-    // Capacity is a fraction of total weight
-    const capacity = Math.floor(totalWeight * capacityRatio);
     
     res.json({ items, capacity });
 });
 
 // --- Batch Stress Test API ---
 app.post('/api/stress-test', (req, res) => {
-    const { numTests, numItems, minValue, maxValue, minWeight, maxWeight, capacityRatio, epsilon } = req.body;
+    const { numTests, numItems, minValue, maxValue, minWeight, maxWeight, capacity, epsilon } = req.body;
     
     const results = [];
     let totalError = 0;
@@ -267,16 +262,12 @@ app.post('/api/stress-test', (req, res) => {
     for (let t = 0; t < numTests; t++) {
         // Generate random items
         const items = [];
-        let totalWeight = 0;
         
         for (let i = 1; i <= numItems; i++) {
             const profit = Math.floor(Math.random() * (maxValue - minValue + 1)) + minValue;
             const size = Math.floor(Math.random() * (maxWeight - minWeight + 1)) + minWeight;
             items.push({ id: i, profit, size });
-            totalWeight += size;
         }
-        
-        const capacity = Math.floor(totalWeight * capacityRatio);
         
         // Run algorithms
         const startExact = performance.now();

@@ -180,7 +180,8 @@ async function generateRandom() {
     const maxValue = parseInt(document.getElementById('randMaxValue').value);
     const minWeight = parseInt(document.getElementById('randMinWeight').value);
     const maxWeight = parseInt(document.getElementById('randMaxWeight').value);
-    const capacityRatio = parseFloat(document.getElementById('randCapRatio').value);
+    const capacity = parseInt(document.getElementById('randCapacity').value);
+    const epsilon = parseFloat(document.getElementById('randEpsilon').value);
 
     // Validate inputs
     if (numItems < 1 || numItems > LIMITS.maxItems) {
@@ -199,12 +200,20 @@ async function generateRandom() {
         alert('Min values must be ≤ max values.');
         return;
     }
+    if (capacity < 1 || capacity > LIMITS.maxCapacity) {
+        alert(`Capacity must be between 1 and ${LIMITS.maxCapacity}.`);
+        return;
+    }
+    if (epsilon < 0.01 || epsilon > 1) {
+        alert('Epsilon must be between 0.01 and 1.');
+        return;
+    }
 
     try {
         const response = await fetch('/api/generate-random', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ numItems, minValue, maxValue, minWeight, maxWeight, capacityRatio })
+            body: JSON.stringify({ numItems, minValue, maxValue, minWeight, maxWeight, capacity })
         });
 
         const data = await response.json();
@@ -212,6 +221,7 @@ async function generateRandom() {
         items = data.items;
         nextId = items.length + 1;
         document.getElementById('capacity').value = data.capacity;
+        document.getElementById('epsilon').value = epsilon;
         
         renderItems();
         solveKnapsack();
@@ -232,6 +242,7 @@ async function runStressTest() {
     const maxValue = parseInt(document.getElementById('stressMaxValue').value);
     const minWeight = parseInt(document.getElementById('stressMinWeight').value);
     const maxWeight = parseInt(document.getElementById('stressMaxWeight').value);
+    const capacity = parseInt(document.getElementById('stressCapacity').value);
     const epsilon = parseFloat(document.getElementById('stressEpsilon').value);
 
     // Validate inputs
@@ -251,6 +262,10 @@ async function runStressTest() {
         alert(`Weights must be between 1 and ${LIMITS.maxWeight}.`);
         return;
     }
+    if (capacity < 1 || capacity > LIMITS.maxCapacity) {
+        alert(`Capacity must be between 1 and ${LIMITS.maxCapacity}.`);
+        return;
+    }
     if (epsilon < 0.01 || epsilon > 1) {
         alert('Epsilon must be between 0.01 and 1.');
         return;
@@ -265,7 +280,7 @@ async function runStressTest() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 numTests, numItems, minValue, maxValue, minWeight, maxWeight, 
-                capacityRatio: 0.5, epsilon 
+                capacity, epsilon 
             })
         });
 

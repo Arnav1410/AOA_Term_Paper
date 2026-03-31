@@ -109,41 +109,27 @@ The following results were obtained from stress testing with randomized instance
 
 | Parameter | Value |
 |-----------|-------|
-| Number of items | 30 |
-| Profit range | [10, 200] |
-| Weight range | [5, 100] |
-| Capacity ratio | $0.5 \times \sum w_i$ |
-| Trials per $\varepsilon$ | 20 |
+| Number of items | 10 |
+| Profit range | [1, 10000] |
+| Weight range | [500, 10000] |
+| Knapsack capacity (W) | 50000 |
+| Trials per $\varepsilon$ | 50 |
 
 ### Results
 
-| $\varepsilon$ | Mean Error (%) | Max Error (%) | Mean Speedup | Mean DP Size Reduction |
-|---|----------------|---------------|--------------|------------------------|
-| 0.1 | 0.12 | 1.84 | 0.87$\times$ | 12% |
-| 0.2 | 0.45 | 3.21 | 1.24$\times$ | 31% |
-| 0.3 | 0.89 | 5.67 | 1.89$\times$ | 48% |
-| 0.4 | 1.34 | 8.92 | 2.67$\times$ | 61% |
-| 0.5 | 2.01 | 12.45 | 3.45$\times$ | 72% |
+| $\varepsilon$ | Mean Error (%) | Max Error (%) | Mean Speedup |
+|---|----------------|---------------|--------------|
+| 0.1 | 0.01 | 0.19 | 36.19x |
+| 0.2 | 0.03 | 0.41 | 60.12x |
+| 0.3 | 0.06 | 0.54 | 77.17x |
+| 0.4 | 0.13 | 0.93 | 97.43x |
+| 0.5 | 0.24 | 1.76 | 118.84x |
+| 0.9 | 0.56 | 4.44 | 168.89x |
 
 **Observations:**
-1. Empirical error consistently remains below the theoretical bound of $\varepsilon \times 100\%$.
-2. Speedup increases approximately linearly with $\varepsilon$.
-3. DP array size reduction follows $O(1/\varepsilon)$ as predicted by theory.
 
-### Test Cases Exhibiting Near-Bound Error
-
-The FPTAS error approaches its theoretical maximum under specific conditions:
-
-1. **Uniform High-Value Items:** Items with identical high profits where scaling factor $K$ becomes large.
-2. **Tight Capacity Constraints:** Capacity permitting selection of few items, amplifying individual scaling errors.
-3. **Wide Profit Distribution:** Large variance in item profits causing uneven truncation effects.
-
-Recommended stress test configuration for observing higher errors:
-- Items: 40
-- Profit range: [500, 5000]
-- Weight range: [10, 30]
-- Capacity ratio: 0.3
-- $\varepsilon$: 0.5
+- Empirical error consistently remains well below the theoretical bound of $\varepsilon \times 100\%$.
+- Speedup increases with $\varepsilon$; However, so does error.
 
 ## API Reference
 
@@ -156,6 +142,8 @@ Recommended stress test configuration for observing higher errors:
 | `/api/limits` | GET | Retrieve current configuration limits |
 
 ## Project Structure
+
+Github: https://github.com/Arnav1410/AOA_Term_Paper
 
 ```
 AOA_Term_Paper/
