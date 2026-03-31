@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knapsack FPTAS Suite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen font-sans text-gray-800">
+    <div class="max-w-3xl w-full bg-white p-10 rounded-xl shadow-lg text-center">
+        <h1 class="text-4xl font-bold text-blue-700 mb-4">Knapsack Algorithm Suite</h1>
+        <p class="text-gray-600 mb-10">Select the formulation you want to analyze and compare Exact DP vs. FPTAS.</p>
+        
+        <div class="grid md:grid-cols-2 gap-6">
+            <a href="min.html" class="block p-8 border-2 border-blue-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition group cursor-pointer text-left">
+                <h2 class="text-2xl font-bold text-blue-600 mb-2 group-hover:text-blue-800">Min-Knapsack</h2>
+                <p class="text-sm text-gray-500 mb-4">Minimize total size (weight) subject to a minimum required profit target.</p>
+                <span class="text-blue-500 font-semibold">Launch Solver &rarr;</span>
+            </a>
+
+            <a href="max.html" class="block p-8 border-2 border-green-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition group cursor-pointer text-left">
+                <h2 class="text-2xl font-bold text-green-600 mb-2 group-hover:text-green-800">0-1 Max Knapsack</h2>
+                <p class="text-sm text-gray-500 mb-4">Maximize total profit subject to a maximum size (capacity) constraint.</p>
+                <span class="text-green-500 font-semibold">Launch Solver &rarr;</span>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
