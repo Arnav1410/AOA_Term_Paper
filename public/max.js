@@ -48,6 +48,12 @@ let items = [
 let nextId = 6;
 let chartInstance = null;
 
+// Chart instances for stress test graphs
+let errorTrendChart = null;
+let speedupTrendChart = null;
+let dpSizeChart = null;
+let timeComparisonChart = null;
+
 function renderItems() {
     const list = document.getElementById('itemsList');
     list.innerHTML = '';
@@ -316,6 +322,9 @@ async function runStressTest() {
             tbody.innerHTML += row;
         });
         
+        // Update graphs
+        updateStressTestGraphs(data);
+        
     } catch (error) {
         console.error('Error running stress test:', error);
         alert('Failed to run stress test.');
@@ -323,6 +332,264 @@ async function runStressTest() {
         btn.disabled = false;
         btn.innerText = 'Run Stress Test';
     }
+}
+
+// Function to update all stress test graphs
+function updateStressTestGraphs(data) {
+    const graphsSection = document.getElementById('stressGraphs');
+    if (graphsSection) {
+        graphsSection.classList.remove('hidden');
+    }
+
+    // Prepare data
+    const testNumbers = data.results.map(r => `Test ${r.testNum}`);
+    const errors = data.results.map(r => parseFloat(r.error));
+    const speedups = data.results.map(r => parseFloat(r.speedup));
+    const exactDpSizes = data.results.map(r => r.exactDpSize);
+    const fptasDpSizes = data.results.map(r => r.fptasDpSize);
+    const exactTimes = data.results.map(r => parseFloat(r.exactTime));
+    const fptasTimes = data.results.map(r => parseFloat(r.fptasTime));
+    const theoreticalMax = parseFloat(data.summary.theoreticalMaxError);
+
+    // Error Trend Chart
+    updateErrorTrendChart(testNumbers, errors, theoreticalMax);
+
+    // Speedup Trend Chart
+    updateSpeedupTrendChart(testNumbers, speedups);
+
+    // DP Size Chart
+    updateDpSizeChart(testNumbers, exactDpSizes, fptasDpSizes);
+
+    // Time Comparison Chart
+    updateTimeComparisonChart(testNumbers, exactTimes, fptasTimes);
+}
+
+// Error Trend Chart
+function updateErrorTrendChart(testNumbers, errors, theoreticalMax) {
+    const ctx = document.getElementById('errorTrendChart').getContext('2d');
+    
+    if (errorTrendChart) errorTrendChart.destroy();
+
+    errorTrendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: testNumbers,
+            datasets: [
+                {
+                    label: 'Actual Error %',
+                    data: errors,
+                    borderColor: 'rgb(239, 68, 68)',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 3,
+                    pointBackgroundColor: 'rgb(239, 68, 68)',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                },
+                {
+                    label: 'Theoretical Max (%)',
+                    data: new Array(errors.length).fill(theoreticalMax),
+                    borderColor: 'rgb(249, 115, 22)',
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    pointRadius: 0,
+                    fill: false,
+                    tension: 0
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Error (%)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Speedup Trend Chart
+function updateSpeedupTrendChart(testNumbers, speedups) {
+    const ctx = document.getElementById('speedupTrendChart').getContext('2d');
+    
+    if (speedupTrendChart) speedupTrendChart.destroy();
+
+    speedupTrendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: testNumbers,
+            datasets: [
+                {
+                    label: 'Speedup (×)',
+                    data: speedups,
+                    borderColor: 'rgb(34, 197, 94)',
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 3,
+                    pointBackgroundColor: 'rgb(34, 197, 94)',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Speedup (×)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// DP Size Comparison Chart
+function updateDpSizeChart(testNumbers, exactDpSizes, fptasDpSizes) {
+    const ctx = document.getElementById('dpSizeChart').getContext('2d');
+    
+    if (dpSizeChart) dpSizeChart.destroy();
+
+    dpSizeChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: testNumbers,
+            datasets: [
+                {
+                    label: 'Exact DP Size',
+                    data: exactDpSizes,
+                    borderColor: 'rgb(107, 114, 128)',
+                    backgroundColor: 'rgba(107, 114, 128, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 3,
+                    pointBackgroundColor: 'rgb(107, 114, 128)',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                },
+                {
+                    label: 'FPTAS DP Size',
+                    data: fptasDpSizes,
+                    borderColor: 'rgb(34, 197, 94)',
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 3,
+                    pointBackgroundColor: 'rgb(34, 197, 94)',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Array Size'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Execution Time Comparison Chart
+function updateTimeComparisonChart(testNumbers, exactTimes, fptasTimes) {
+    const ctx = document.getElementById('timeComparisonChart').getContext('2d');
+    
+    if (timeComparisonChart) timeComparisonChart.destroy();
+
+    timeComparisonChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: testNumbers,
+            datasets: [
+                {
+                    label: 'Exact DP Time (ms)',
+                    data: exactTimes,
+                    borderColor: 'rgb(107, 114, 128)',
+                    backgroundColor: 'rgba(107, 114, 128, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 3,
+                    pointBackgroundColor: 'rgb(107, 114, 128)',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                },
+                {
+                    label: 'FPTAS Time (ms)',
+                    data: fptasTimes,
+                    borderColor: 'rgb(34, 197, 94)',
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 3,
+                    pointBackgroundColor: 'rgb(34, 197, 94)',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Time (ms)'
+                    }
+                }
+            }
+        }
+    });
 }
 
 renderItems();

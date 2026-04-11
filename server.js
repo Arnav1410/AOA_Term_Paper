@@ -248,6 +248,21 @@ app.post('/api/generate-random', (req, res) => {
     res.json({ items, capacity });
 });
 
+// --- Random Test Case Generator API (for Min Knapsack) ---
+app.post('/api/generate-random-min', (req, res) => {
+    const { numItems, minProfit, maxProfit, minSize, maxSize, minProfitTarget } = req.body;
+    
+    const items = [];
+    
+    for (let i = 1; i <= numItems; i++) {
+        const profit = Math.floor(Math.random() * (maxProfit - minProfit + 1)) + minProfit;
+        const size = Math.floor(Math.random() * (maxSize - minSize + 1)) + minSize;
+        items.push({ id: i, profit, size });
+    }
+    
+    res.json({ items, minProfitTarget });
+});
+
 // --- Batch Stress Test API ---
 app.post('/api/stress-test', (req, res) => {
     const { numTests, numItems, minValue, maxValue, minWeight, maxWeight, capacity, epsilon } = req.body;
@@ -283,6 +298,83 @@ app.post('/api/stress-test', (req, res) => {
         
         const error = exactData.result > 0 ? 
             ((exactData.result - fptasData.result) / exactData.result * 100) : 0;
+        const speedup = exactTime / Math.max(0.0001, fptasTime);
+        
+        totalError += error;
+        maxError = Math.max(maxError, error);
+        totalSpeedup += speedup;
+        exactTotalTime += exactTime;
+        fptasTotalTime += fptasTime;
+        
+        results.push({
+            testNum: t + 1,
+            exactResult: exactData.result,
+            fptasResult: fptasData.result,
+            exactTime: exactTime.toFixed(4),
+            fptasTime: fptasTime.toFixed(4),
+            error: error.toFixed(2),
+            speedup: speedup.toFixed(2),
+            exactDpSize: exactData.dpSize,
+            fptasDpSize: fptasData.dpSize
+        });
+    }
+    
+    res.json({
+        results,
+        summary: {
+            avgError: (totalError / numTests).toFixed(2),
+            maxError: maxError.toFixed(2),
+            avgSpeedup: (totalSpeedup / numTests).toFixed(2),
+            totalExactTime: exactTotalTime.toFixed(2),
+            totalFptasTime: fptasTotalTime.toFixed(2),
+            theoreticalMaxError: (epsilon * 100).toFixed(1)
+        }
+    });
+});
+
+// --- Batch Stress Test API (for Min Knapsack) ---
+app.post('/api/stress-test-min', (req, res) => {
+    const { numTests, numItems, minProfit, maxProfit, minSize, maxSize, minProfitTarget, epsilon } = req.body;
+    
+    const results = [];
+    let totalError = 0;
+    let maxError = 0;
+    let totalSpeedup = 0;
+    let exactTotalTime = 0;
+    let fptasTotalTime = 0;
+    
+    for (let t = 0; t < numTests; t++) {
+        // Generate random items
+        const items = [];
+        
+        for (let i = 1; i <= numItems; i++) {
+            const profit = Math.floor(Math.random() * (maxProfit - minProfit + 1)) + minProfit;
+            const size = Math.floor(Math.random() * (maxSize - minSize + 1)) + minSize;
+            items.push({ id: i, profit, size });
+        }
+        
+        // Run algorithms
+        const startExact = performance.now();
+        const exactData = exactMinKnapsack(items, minProfitTarget);
+        const endExact = performance.now();
+        
+        const startFptas = performance.now();
+        const fptasData = fptasMinKnapsack(items, minProfitTarget, epsilon);
+        const endFptas = performance.now();
+        
+        const exactTime = endExact - startExact;
+        const fptasTime = endFptas - startFptas;
+        
+        // Handle infeasible cases (result === -1)
+        let error = 0;
+        if (exactData.result === -1 && fptasData.result === -1) {
+            error = 0; // Both infeasible
+        } else if (exactData.result === -1 || fptasData.result === -1) {
+            error = 100; // One infeasible, one feasible
+        } else {
+            error = ((fptasData.result - exactData.result) / exactData.result * 100);
+        }
+        
         const speedup = exactTime / Math.max(0.0001, fptasTime);
         
         totalError += error;
