@@ -244,6 +244,45 @@
                         <tbody id="stressTable"></tbody>
                     </table>
                 </div>
+
+                <!-- Stress Test Graphs -->
+                <div id="stressGraphs" class="hidden mt-8">
+                    <h3 class="text-lg font-bold text-gray-700 mb-4">Performance Analysis Graphs</h3>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Error Trend Chart -->
+                        <div class="bg-gray-50 p-4 rounded-lg border">
+                            <h4 class="font-semibold text-sm text-gray-700 mb-3">Error Trend (%) Across Tests</h4>
+                            <div style="height: 250px;">
+                                <canvas id="errorTrendChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Speedup Trend Chart -->
+                        <div class="bg-gray-50 p-4 rounded-lg border">
+                            <h4 class="font-semibold text-sm text-gray-700 mb-3">Speedup (×) Across Tests</h4>
+                            <div style="height: 250px;">
+                                <canvas id="speedupTrendChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- DP Size Comparison -->
+                        <div class="bg-gray-50 p-4 rounded-lg border">
+                            <h4 class="font-semibold text-sm text-gray-700 mb-3">DP Array Size Reduction</h4>
+                            <div style="height: 250px;">
+                                <canvas id="dpSizeChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Execution Time Comparison -->
+                        <div class="bg-gray-50 p-4 rounded-lg border">
+                            <h4 class="font-semibold text-sm text-gray-700 mb-3">Execution Time (ms) Across Tests</h4>
+                            <div style="height: 250px;">
+                                <canvas id="timeComparisonChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

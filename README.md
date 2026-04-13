@@ -131,6 +131,28 @@ The following results were obtained from stress testing with randomized instance
 - Empirical error consistently remains well below the theoretical bound of $\varepsilon \times 100\%$.
 - Speedup increases with $\varepsilon$; However, so does error.
 
+## Interactive Performance Visualization
+
+The web interface provides real-time visualization of algorithm performance through a **Batch Stress Test** feature that generates interactive graphs. When the "Run Stress Test" button is clicked, results are displayed through four comprehensive charts:
+
+### Graph Types
+
+1. **Error Trend Chart** - Line plot showing the approximation error (%) across multiple test cases, with a dashed reference line indicating the theoretical maximum error bound (ε × 100%).
+
+2. **Speedup Chart** - Demonstrates the performance ratio of Exact DP versus FPTAS execution times across tests, showing practical speedup gains.
+
+3. **DP Array Size Reduction** - Compares the memory consumption between Exact DP and FPTAS by plotting DP array sizes, illustrating the space complexity benefits of scaling.
+
+4. **Execution Time Comparison** - Line chart overlaying execution times (in milliseconds) of both algorithms, visualizing the computational efficiency trade-off.
+
+### Features
+
+- Graphs **automatically refresh** whenever a new stress test is executed
+- Each graph includes a legend identifying the data series
+- Test parameters (number of tests, item count, epsilon value) are fully configurable
+- Summary statistics display mean error, maximum error, average speedup, and total execution times
+- Results table displays per-test metrics with infeasibility handling
+
 ## API Reference
 
 | Endpoint | Method | Description |
